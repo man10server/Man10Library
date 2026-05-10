@@ -33,11 +33,9 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.man10:man10library:1.0.0")
+    implementation("red.man10:man10-library:1.0.0")
 }
 ```
-
-詳細は [GITHUB_PACKAGES_SETUP.md](GITHUB_PACKAGES_SETUP.md) を参照してください。
 
 ## プロジェクト構成
 

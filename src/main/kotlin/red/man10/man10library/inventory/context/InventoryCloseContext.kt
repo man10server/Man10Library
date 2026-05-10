@@ -5,7 +5,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 /**
  * インベントリを閉じた時のコンテキスト。
  *
- * [MInventory.onClose] リスト内のラムダで `this` として利用可能です。
+ * [red.man10.man10library.inventory.MInventory.onClose] リスト内のラムダで `this` として利用可能です。
  *
  * ### 使用例
  *

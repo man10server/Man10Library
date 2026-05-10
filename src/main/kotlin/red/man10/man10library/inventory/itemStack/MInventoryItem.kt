@@ -11,7 +11,7 @@ import red.man10.man10library.inventory.context.InventoryClickContext
  * [MItemStack] を継承しており、[MItemStack] のすべての機能（表示名、Lore、テキスト形式変換）
  * に加えて、クリックイベントハンドリング機能を提供します。
  *
- * [MInventory] の `set` メソッドで使用され、アイテムクリック時に登録されたコールバック
+ * [red.man10.man10library.inventory.MInventory] の `set` メソッドで使用され、アイテムクリック時に登録されたコールバック
  * が自動的に呼び出されます。
  *
  * ### 使用例
@@ -47,7 +47,7 @@ import red.man10.man10library.inventory.context.InventoryClickContext
  *
  * @see MItemStack
  * @see InventoryClickContext
- * @see MInventory.set
+ * @see red.man10.man10library.inventory.MInventory.set
  */
 @MItemStackDslMarker
 class MInventoryItem(itemStack: ItemStack): MItemStack(itemStack) {

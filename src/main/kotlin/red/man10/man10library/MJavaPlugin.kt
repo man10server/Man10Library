@@ -1,7 +1,6 @@
 package red.man10.man10library
 
 import io.papermc.paper.command.brigadier.Commands
-import io.papermc.paper.plugin.lifecycle.event.registrar.ReloadableRegistrarEvent
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -10,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin
  *
  * サブクラスはプラグイン固有の初期化処理やコマンド登録を行います。
  */
+@Suppress("unused")
 abstract class MJavaPlugin : JavaPlugin() {
 
     companion object {

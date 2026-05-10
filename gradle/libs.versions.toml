@@ -1,0 +1,7 @@
+[versions]
+minecraft = "1.21.8-R0.1-SNAPSHOT"
+brigadier = "1.0.18"
+
+[libraries]
+paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "minecraft" }
+brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier" }

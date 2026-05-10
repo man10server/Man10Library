@@ -3,18 +3,16 @@ plugins {
     id("com.gradleup.shadow") version "9.4.1"
 }
 
-val pluginVersion: String by project.ext
-
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:$pluginVersion-R0.1-SNAPSHOT")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation(kotlin("stdlib"))
 
-    compileOnly("com.mojang:brigadier:1.0.18")
+    compileOnly(libs.paper.api)
+    compileOnly(libs.brigadier)
 }
 
 kotlin {

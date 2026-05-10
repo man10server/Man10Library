@@ -13,6 +13,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack
  * @param name 引数名
  * @param type 引数の型（Mojang Brigadier の ArgumentType）
  */
+@Suppress("unused")
 class MCommandRequiredArgument<T>(val name: String, val type: ArgumentType<T>, init: MCommandRequiredArgument<T>.() -> Unit): MCommandArgument() {
 
     /** 補完候補を返す関数型。実行コンテキストを受け取り、文字列リストを返す。 */

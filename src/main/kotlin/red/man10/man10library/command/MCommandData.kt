@@ -12,6 +12,7 @@ import org.bukkit.command.CommandSender
  *
  * @property context Brigadier の CommandContext
  */
+@Suppress("unused")
 open class MCommandData(
     val context: CommandContext<CommandSourceStack>
 ) {

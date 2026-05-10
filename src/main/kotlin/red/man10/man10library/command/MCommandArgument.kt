@@ -19,6 +19,7 @@ import org.bukkit.command.CommandSender
  * - [executes]: コマンド実行時の処理を登録します。
  * - [requires]: 実行要件（権限など）を追加します。
  */
+@Suppress("unused")
 abstract class MCommandArgument {
     /** コマンド送信者に対する実行許可判定を行う関数型 */
     typealias Requirement = (sender: CommandSender) -> Boolean

@@ -8,6 +8,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack
  *
  * 複数のトップレベル literal を保持し、それらを Brigadier の LiteralArgumentBuilder のリストとして生成します。
  */
+@Suppress("unused")
 class MCommandObject(init: MCommandObject.() -> Unit) {
 
     private val arguments = mutableListOf<MCommandLiteral>()

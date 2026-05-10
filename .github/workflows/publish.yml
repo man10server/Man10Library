@@ -38,6 +38,9 @@ jobs:
         run: |
           sed -i 's/^version=.*/version=${{ steps.get_version.outputs.version }}/' gradle.properties
 
+      - name: Give Permission
+        run: chmod +x ./gradlew
+
       - name: Build
         run: ./gradlew clean build
 

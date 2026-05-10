@@ -70,9 +70,6 @@ abstract class MCommand(registrar: Commands) {
      *
      * サブクラス内で `@MCommandBody` を付与したプロパティの初期化に使用します。
      *
-     * 例:
-     * val example by lazy { command { literal("hello") { executes { sender.sendMessage("hi") } } } }
-     *
      * @param init MCommandObject を初期化するラムダ。トップレベルのリテラルや引数・実行ハンドラをここで定義します。
      * @return 生成された [MCommandObject]
      */

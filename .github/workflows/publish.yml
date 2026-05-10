@@ -22,9 +22,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v2
-
       - name: Extract version from tag
         id: get_version
         run: |

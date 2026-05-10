@@ -33,6 +33,10 @@ abstract class MJavaPlugin : JavaPlugin() {
 
     }
 
+    override fun onLoad() {
+        plugin = this
+    }
+
     override fun onEnable() {
         // Paper のライフサイクルイベント(COMMANDS)を購読し、レジストラを registerCommands に渡す
         lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS) { commands ->

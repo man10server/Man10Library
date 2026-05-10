@@ -1,9 +1,10 @@
-package red.man10.man10library.command
+package red.man10.man10library.command.argument
 
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
+import red.man10.man10library.command.MCommandData
 
 /**
  * 必須引数（argument）を表すクラス。

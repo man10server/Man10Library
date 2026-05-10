@@ -1,9 +1,11 @@
-package red.man10.man10library.command
+package red.man10.man10library.command.argument
 
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.bukkit.command.CommandSender
+import red.man10.man10library.command.MCommandData
+import red.man10.man10library.dslMarker.MCommandDslMarker
 
 /**
  * コマンドの引数やリテラルの基底クラス。
@@ -20,9 +22,10 @@ import org.bukkit.command.CommandSender
  * - [requires]: 実行要件（権限など）を追加します。
  */
 @Suppress("unused")
+@MCommandDslMarker
 abstract class MCommandArgument {
     /** コマンド送信者に対する実行許可判定を行う関数型 */
-    typealias Requirement = (sender: CommandSender) -> Boolean
+    typealias Requirement = CommandSender.() -> Boolean
     /** コマンド実行時に呼ばれる関数。戻り値は Brigadier の結果コード（通常 0 など） */
     typealias Executor = MCommandData.() -> Int
 
@@ -86,7 +89,7 @@ abstract class MCommandArgument {
      * @param permission 必要なパーミッションノード（例: "myplugin.command.use"）
      */
     fun permission(permission: String) {
-        requires { sender -> sender.hasPermission(permission) }
+        requires { hasPermission(permission) }
     }
 
     /**

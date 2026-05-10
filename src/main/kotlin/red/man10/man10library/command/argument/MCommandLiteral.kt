@@ -1,4 +1,4 @@
-package red.man10.man10library.command
+package red.man10.man10library.command.argument
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack

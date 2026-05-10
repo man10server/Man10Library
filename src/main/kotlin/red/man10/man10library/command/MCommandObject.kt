@@ -2,6 +2,8 @@ package red.man10.man10library.command
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import io.papermc.paper.command.brigadier.CommandSourceStack
+import red.man10.man10library.command.argument.MCommandLiteral
+import red.man10.man10library.dslMarker.MCommandDslMarker
 
 /**
  * コマンド定義オブジェクト。
@@ -9,6 +11,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack
  * 複数のトップレベル literal を保持し、それらを Brigadier の LiteralArgumentBuilder のリストとして生成します。
  */
 @Suppress("unused")
+@MCommandDslMarker
 class MCommandObject(init: MCommandObject.() -> Unit) {
 
     private val arguments = mutableListOf<MCommandLiteral>()

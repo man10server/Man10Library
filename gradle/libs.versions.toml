@@ -1,7 +1,13 @@
 [versions]
 minecraft = "1.21.8-R0.1-SNAPSHOT"
 brigadier = "1.0.18"
+coroutines = "1.10.2"
+mc-coroutines = "2.22.0"
 
 [libraries]
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "minecraft" }
 brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-jdk8 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-jdk8", version.ref = "coroutines" }
+mccoroutines-api = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-api", version.ref = "mc-coroutines" }
+mccoroutines-core = { group = "com.github.shynixn.mccoroutine", name = "mccoroutine-bukkit-core", version.ref = "mc-coroutines" }

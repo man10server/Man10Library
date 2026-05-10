@@ -14,6 +14,19 @@ dependencies {
 
     compileOnly(libs.paper.api)
     compileOnly(libs.brigadier)
+
+    api(libs.kotlinx.coroutines.core) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+    }
+    api(libs.kotlinx.coroutines.jdk8) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+    }
+    api(libs.mccoroutines.api) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+    }
+    api(libs.mccoroutines.core) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+    }
 }
 
 kotlin {

@@ -1,0 +1,37 @@
+package red.man10.man10library.inventory.context
+
+import org.bukkit.event.inventory.InventoryCloseEvent
+
+/**
+ * インベントリを閉じた時のコンテキスト。
+ *
+ * [MInventory.onClose] リスト内のラムダで `this` として利用可能です。
+ *
+ * ### 使用例
+ *
+ * ```kotlin
+ * inventory.onClose.add {
+ *     // this は InventoryCloseContext
+ *     player.sendMessage("You closed the inventory!")
+ * }
+ * ```
+ *
+ * または、DSL で：
+ *
+ * ```kotlin
+ * // MInventory 側で onClose リストにコールバックを追加
+ * inventory.onClose += {
+ *     println("Inventory closed by ${player.name}")
+ * }
+ * ```
+ *
+ * @param inventoryCloseEvent クローズイベント（Bukkit）
+ *
+ * @see red.man10.man10library.inventory.MInventory.onClose
+ * @see AbstractInventoryContext
+ */
+@Suppress("unused")
+class InventoryCloseContext(
+    /** クローズイベント。詳細情報を取得できます。 */
+    val inventoryCloseEvent: InventoryCloseEvent
+): AbstractInventoryContext(inventoryCloseEvent)

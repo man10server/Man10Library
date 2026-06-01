@@ -32,18 +32,19 @@ object MConfig {
         }
     }
 
-    fun getConfigsRecursively(folder: String): List<YamlConfiguration> {
-        val configList = mutableListOf<YamlConfiguration>()
-        val dir = File(plugin.dataFolder, folder)
-        if (!dir.exists() || !dir.isDirectory) {
-            return configList
-        }
-        dir.walkTopDown().forEach { file ->
-            if (file.isFile && file.extension == "yml") {
-                val config = YamlConfiguration.loadConfiguration(file)
-                configList.add(config)
+    suspend fun getConfigsRecursively(folder: String): List<YamlConfiguration> {
+         return withContext(plugin.asyncDispatcher) {
+            val directory = File(plugin.dataFolder, folder)
+            if (!directory.exists() || !directory.isDirectory) {
+                return@withContext emptyList()
             }
+            val configs = mutableListOf<YamlConfiguration>()
+            directory.walkTopDown().forEach { file ->
+                if (file.isFile && file.extension == "yml") {
+                    configs.add(YamlConfiguration.loadConfiguration(file))
+                }
+            }
+            return@withContext configs
         }
-        return configList
     }
 }

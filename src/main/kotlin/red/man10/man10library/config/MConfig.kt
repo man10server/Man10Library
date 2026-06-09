@@ -9,7 +9,7 @@ import java.io.File
 @Suppress("unused")
 object MConfig {
 
-    val plugin by lazy { MJavaPlugin.plugin }
+    private val plugin by lazy { MJavaPlugin.plugin }
 
     suspend fun getConfig(path: String): YamlConfiguration? {
         return withContext(plugin.asyncDispatcher) {

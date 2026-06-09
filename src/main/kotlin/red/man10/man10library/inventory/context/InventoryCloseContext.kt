@@ -10,18 +10,9 @@ import org.bukkit.event.inventory.InventoryCloseEvent
  * ### 使用例
  *
  * ```kotlin
- * inventory.onClose.add {
+ * inventory.onClose {
  *     // this は InventoryCloseContext
  *     player.sendMessage("You closed the inventory!")
- * }
- * ```
- *
- * または、DSL で：
- *
- * ```kotlin
- * // MInventory 側で onClose リストにコールバックを追加
- * inventory.onClose += {
- *     println("Inventory closed by ${player.name}")
  * }
  * ```
  *

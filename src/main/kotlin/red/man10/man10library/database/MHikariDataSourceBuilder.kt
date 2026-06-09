@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import org.bukkit.configuration.ConfigurationSection
 import red.man10.man10library.MJavaPlugin
 
+@Suppress("unused")
 object MHikariDataSourceBuilder {
 
     private val types = listOf(DatabaseType.MySQL, DatabaseType.PostgreSQL, DatabaseType.SQLite)

@@ -33,7 +33,7 @@ object MConfig {
     }
 
     suspend fun getConfigsRecursively(folder: String): List<YamlConfiguration> {
-         return withContext(plugin.asyncDispatcher) {
+        return withContext(plugin.asyncDispatcher) {
             val directory = File(plugin.dataFolder, folder)
             if (!directory.exists() || !directory.isDirectory) {
                 return@withContext emptyList()

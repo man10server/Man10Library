@@ -27,6 +27,7 @@ dependencies {
     api(libs.mccoroutines.core) {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
     }
+    api(libs.hikari.cp)
 }
 
 kotlin {

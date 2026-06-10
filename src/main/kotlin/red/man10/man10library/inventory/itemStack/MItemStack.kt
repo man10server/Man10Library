@@ -1,11 +1,17 @@
 package red.man10.man10library.inventory.itemStack
 
+import io.papermc.paper.datacomponent.DataComponentBuilder
+import io.papermc.paper.datacomponent.DataComponentType
 import io.papermc.paper.datacomponent.DataComponentTypes
 import io.papermc.paper.datacomponent.item.TooltipDisplay
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.persistence.PersistentDataType
+import red.man10.man10library.MJavaPlugin
 import red.man10.man10library.dslMarker.MItemStackDslMarker
 import red.man10.man10library.utils.UnaryPlusBuilder
 
@@ -155,6 +161,27 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
             lore = value?.map { fromMiniMessage(it) }
         }
 
+    var customModelData: Float?
+        get() = withMeta { meta ->
+            if (!meta.hasCustomModelDataComponent()) return@withMeta null
+            meta.customModelDataComponent.floats.firstOrNull()
+        }
+        set(value) {
+            itemStack.editMeta { it.setCustomModelDataComponent(it.customModelDataComponent.apply {
+                floats = listOfNotNull(value)
+            }) }
+        }
+
+    var itemModel: Key?
+        get() = itemStack.getData(DataComponentTypes.ITEM_MODEL)
+        set(value) {
+            if (value == null) {
+                itemStack.unsetData(DataComponentTypes.ITEM_MODEL)
+            } else {
+                itemStack.setData(DataComponentTypes.ITEM_MODEL, value)
+            }
+        }
+
     /**
      * アイテムのツールチップ（ホバー時表示）を非表示にするかどうか。
      *
@@ -163,15 +190,38 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     var hideTooltip: Boolean
         get() = itemStack.getData(DataComponentTypes.TOOLTIP_DISPLAY)?.hideTooltip() ?: false
         set(value) {
-            val hiddenComponents = itemStack.getData(DataComponentTypes.TOOLTIP_DISPLAY)?.hiddenComponents() ?: setOf()
-            itemStack.setData(
-                DataComponentTypes.TOOLTIP_DISPLAY,
-                TooltipDisplay.tooltipDisplay()
-                    .hiddenComponents(hiddenComponents)
-                    .hideTooltip(value)
-            )
+            setData(DataComponentTypes.TOOLTIP_DISPLAY) {
+                TooltipDisplay.tooltipDisplay().apply {
+                    hideTooltip(value)
+                    val defaultData = itemStack.getData(DataComponentTypes.TOOLTIP_DISPLAY)
+                    if (defaultData != null) {
+                        hiddenComponents(defaultData.hiddenComponents())
+                    }
+                }
+            }
         }
 
+
+    fun <T : Any> setData(componentType: DataComponentType.Valued<T>, value: T) {
+        itemStack.setData(componentType, value)
+    }
+
+    fun <T: Any> setData(componentType: DataComponentType.Valued<T>, valueBuilder: (default: T?) -> DataComponentBuilder<T>) {
+        val defaultValue = itemStack.getData(componentType)
+        val newValue = valueBuilder(defaultValue).build()
+        itemStack.setData(componentType, newValue)
+    }
+
+    fun <P: Any, C: Any> setPersistentData(key: NamespacedKey, type: PersistentDataType<P, C>, value: C) {
+        itemStack.editMeta { meta ->
+            meta.persistentDataContainer.set(key, type, value)
+        }
+    }
+
+    fun <P: Any, C: Any> setPersistentData(key: String, type: PersistentDataType<P, C>, value: C) {
+        val namespacedKey = NamespacedKey(MJavaPlugin.plugin, key)
+        setPersistentData(namespacedKey, type, value)
+    }
 
     /**
      * Lore（説明文）を Component ビルダーで設定します。

@@ -18,8 +18,10 @@ import red.man10.man10library.utils.UnaryPlusBuilder
 /**
  * ItemStack を DSL 形式で詳細に設定できるビルダークラス。
  *
- * 表示名、説明文（Lore）、ツールチップ非表示など、アイテムメタデータを容易に操作できます。
- * [IMItemStack] インターフェイスを実装し、テキスト形式の変換機能も提供します。
+ * Bukkit / Paper の ItemMeta と Data Component をまとめて扱い、
+ * 表示名、Lore、custom model data、item model、ツールチップ表示、PersistentData などを
+ * ひとつの API で設定できます。
+ * [IMItemStack] を実装しているため、Legacy / MiniMessage / Component の相互変換も利用できます。
  *
  * ### 基本的な使用例
  *
@@ -30,21 +32,25 @@ import red.man10.man10library.utils.UnaryPlusBuilder
  *         + "<gray>Rare item"
  *         + "<gray>Worth lots of coins"
  *     }
+ *     customModelData = 1001f
+ *     itemModel = Key.key("example", "diamond")
  *     hideTooltip = true
  * }
  * ```
  *
- * ### プロパティの説明
+ * ### 主な設定項目
  *
- * テキスト関連のプロパティは3つの形式で利用可能です：
- * - `customName` - Component 形式
- * - `customNameText` - Legacy 形式（色コード）
- * - `customNameMiniMessage` - MiniMessage 形式（タグベース）
+ * - `customName` / `customNameText` / `customNameMiniMessage` - 表示名の設定
+ * - `lore` / `loreText` / `loreMiniMessage` - 説明文の設定
+ * - `customModelData` - カスタムモデル用の数値データ
+ * - `itemModel` - Paper の item model データコンポーネント
+ * - `hideTooltip` - ホバー時のツールチップ表示制御
+ * - `setPersistentData` - 追加情報を PDC に保存
  *
- * Lore（説明文）についても同様です：
- * - `lore` - 複数の Component のリスト
- * - `loreText` - Legacy 形式スト
- * - `loreMiniMessage` - MiniMessage 形式リスト
+ * ### 注意点
+ *
+ * `build()` で返される ItemStack は内部保持しているスタックの複製です。
+ * そのため、返却後の変更はこのビルダー本体には影響しません。
  *
  * @param itemStack 元になる ItemStack
  *
@@ -82,7 +88,8 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * アイテムの表示名（Component 形式）。
      *
-     * null を設定すると表示名がクリアされます。
+     * `null` を設定すると表示名がクリアされます。
+     * 文字列からの変換ではなく、Adventure の [Component] を直接扱いたい場合に使用します。
      */
     var customName: Component?
         get() = withMeta { it.customName() }
@@ -93,7 +100,9 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * アイテムの表示名（Legacy 形式 - 色コード `§x` 使用）。
      *
-     * 内部的に [customName] と相互変換されます。
+     * 既存の Legacy 系コードをそのまま使いたい場合に便利です。
+     * 内部的には [customName] と相互変換されるため、
+     * 取得時には Component から Legacy へ、設定時には Legacy から Component へ変換されます。
      *
      * @see customName
      * @see customNameMiniMessage
@@ -107,9 +116,9 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * アイテムの表示名（MiniMessage 形式 - タグベース）。
      *
-     * 例：`"<yellow>My Item"`, `"<red><bold>Rare"`, `"<gradient:red:blue>Gradient"`
-     *
-     * 内部的に [customName] と相互変換されます。
+     * `"<yellow>My Item"` や `"<red><bold>Rare"` のような書式をそのまま設定できます。
+     * グラデーションや装飾付きのテキストを簡潔に書きたいときに便利です。
+     * 内部的には [customName] と相互変換されます。
      *
      * @see customName
      * @see customNameText
@@ -123,7 +132,9 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * アイテムの説明文（Lore）- Component リスト形式。
      *
-     * 複行のテキストを設定できます。各行が Lore の1行になります。
+     * 各 [Component] が Lore の 1 行として扱われます。
+     * `null` を設定すると Lore をクリアします。
+     * 複雑な装飾やクリックイベントなど、Component ならではの表現を使いたい場合に便利です。
      */
     var lore: List<Component>?
         get() = withMeta { it.lore() }
@@ -134,7 +145,8 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * アイテムの説明文（Lore）- Legacy 形式（色コード `§x` 使用）。
      *
-     * 内部的に [lore] と相互変換されます。
+     * 既存の色コード資産をそのまま利用したい場合に使えます。
+     * 内部的には [lore] と相互変換され、各行ごとに Legacy 文字列と Component を変換します。
      *
      * @see lore
      * @see loreMiniMessage
@@ -148,9 +160,8 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * アイテムの説明文（Lore）- MiniMessage 形式（タグベース）。
      *
-     * 例：`listOf("<gray>説明1", "<gray>説明2")`
-     *
-     * 内部的に [lore] と相互変換されます。
+     * `listOf("<gray>説明1", "<gray>説明2")` のように複数行を簡潔に記述できます。
+     * 内部的には [lore] と相互変換されるため、必要に応じて Component ベースにも展開されます。
      *
      * @see lore
      * @see loreText
@@ -161,6 +172,13 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
             lore = value?.map { fromMiniMessage(it) }
         }
 
+    /**
+     * アイテムの custom model data。
+     *
+     * Paper の custom model data component を 1 つの `Float` として扱います。
+     * 値が複数入っている場合は先頭の値を返します。
+     * `null` を設定すると保存済みの値を空にします。
+     */
     var customModelData: Float?
         get() = withMeta { meta ->
             if (!meta.hasCustomModelDataComponent()) return@withMeta null
@@ -172,6 +190,13 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
             }) }
         }
 
+    /**
+     * アイテムの item model キー。
+     *
+     * Paper の `DataComponentTypes.ITEM_MODEL` を使って、
+     * `namespace:path` 形式のモデル識別子を設定できます。
+     * `null` を設定すると item model を削除します。
+     */
     var itemModel: Key?
         get() = itemStack.getData(DataComponentTypes.ITEM_MODEL)
         set(value) {
@@ -186,6 +211,7 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
      * アイテムのツールチップ（ホバー時表示）を非表示にするかどうか。
      *
      * `true` にするとプレイヤーがアイテムをホバーしてもツールチップが表示されません。
+     * 設定時は既存の hidden components を維持しつつ、`hideTooltip` のみを書き換えます。
      */
     var hideTooltip: Boolean
         get() = itemStack.getData(DataComponentTypes.TOOLTIP_DISPLAY)?.hideTooltip() ?: false
@@ -202,22 +228,57 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
         }
 
 
+    /**
+     * 指定した Data Component に値を直接設定します。
+     *
+     * 既存値の参照や変換が不要な場合に使います。
+     *
+     * @param componentType 設定対象の Data Component
+     * @param value 設定する値
+     */
     fun <T : Any> setData(componentType: DataComponentType.Valued<T>, value: T) {
         itemStack.setData(componentType, value)
     }
 
+    /**
+     * 指定した Data Component を、既存値を参照しながら構築して設定します。
+     *
+     * `valueBuilder` には現在の値（存在しない場合は `null`）が渡されるため、
+     * 既存設定を引き継いだうえで一部だけ変更したい場合に便利です。
+     *
+     * @param componentType 設定対象の Data Component
+     * @param valueBuilder 既存値を基に新しい値を組み立てるビルダー
+     */
     fun <T: Any> setData(componentType: DataComponentType.Valued<T>, valueBuilder: (default: T?) -> DataComponentBuilder<T>) {
         val defaultValue = itemStack.getData(componentType)
         val newValue = valueBuilder(defaultValue).build()
         itemStack.setData(componentType, newValue)
     }
 
+    /**
+     * PersistentDataContainer に値を保存します。
+     *
+     * `NamespacedKey` を明示的に指定したい場合に使用します。
+     *
+     * @param key 保存先のキー
+     * @param type 保存するデータ型
+     * @param value 保存する値
+     */
     fun <P: Any, C: Any> setPersistentData(key: NamespacedKey, type: PersistentDataType<P, C>, value: C) {
         itemStack.editMeta { meta ->
             meta.persistentDataContainer.set(key, type, value)
         }
     }
 
+    /**
+     * PersistentDataContainer に値を保存します。
+     *
+     * 文字列キーを渡すと、[MJavaPlugin.plugin] の名前空間で [NamespacedKey] を自動生成します。
+     *
+     * @param key 保存先のキー文字列
+     * @param type 保存するデータ型
+     * @param value 保存する値
+     */
     fun <P: Any, C: Any> setPersistentData(key: String, type: PersistentDataType<P, C>, value: C) {
         val namespacedKey = NamespacedKey(MJavaPlugin.plugin, key)
         setPersistentData(namespacedKey, type, value)
@@ -226,7 +287,17 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * Lore（説明文）を Component ビルダーで設定します。
      *
-     * [UnaryPlusBuilder] を使用して流暢な API で複数行の Lore を設定できます。
+     * [UnaryPlusBuilder] を使うことで、`+` 演算子で複数行を直感的に追加できます。
+     * Component ベースで各行を組み立てたいときに利用します。
+     *
+     * ### 使用例
+     *
+     * ```kotlin
+     * lore {
+     *     + Component.text("Line 1")
+     *     + Component.text("Line 2")
+     * }
+     * ```
      *
      * @param builder Lore を構築するラムダ
      *
@@ -242,7 +313,8 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * Lore（説明文）を Legacy 形式で設定します。
      *
-     * [UnaryPlusBuilder] を使用して流暢な API で複数行の Lore を設定できます。
+     * 既存の色コード文字列をそのまま並べたい場合に便利です。
+     * [UnaryPlusBuilder] を使うことで、1 行ずつ追加しながら簡潔に記述できます。
      *
      * @param builder Legacy 形式のテキストで Lore を構築するラムダ
      *
@@ -258,9 +330,11 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * Lore（説明文）を MiniMessage 形式で設定します。
      *
-     * [UnaryPlusBuilder] を使用して流暢な API で複数行の Lore を設定できます。
+     * 色付きテキストや装飾を短く記述したい場合に適しています。
+     * [UnaryPlusBuilder] を用いて複数行を順番に追加できます。
      *
-     * 例：
+     * ### 使用例
+     *
      * ```kotlin
      * loreMiniMessage {
      *     + "<gray>説明1"
@@ -282,7 +356,8 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
     /**
      * このアイテムを Bukkit の ItemStack に変換して返します。
      *
-     * 返されたアイテムスタックは設定した内容の複製です。
+     * 返された ItemStack は内部のスタックを複製したものです。
+     * 呼び出し側で変更しても、このビルダーが保持している状態には影響しません。
      *
      * @return 生成した ItemStack（複製）
      */

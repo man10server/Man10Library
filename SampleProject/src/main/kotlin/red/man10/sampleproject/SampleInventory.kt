@@ -13,7 +13,6 @@ class SampleInventory: MInventory("Sample Inventory", 6) {
                 +"<gray>Rare item"
             }
 
-            customModelData = 1.0f
             itemModel = Key.key("minecraft", "diamond_sword")
 
             onClick {

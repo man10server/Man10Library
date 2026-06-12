@@ -22,5 +22,12 @@ class SampleInventory: MInventory("Sample Inventory", 6) {
                 println("Click type: ${inventoryClickEvent.click}")
             }
         }
+
+        setInput(1, Material.PAPER, Int::class.java) {
+            customNameMiniMessage = "<green>Input Paper"
+            onEnter {
+                player.sendMessage("You entered: $value")
+            }
+        }
     }
 }

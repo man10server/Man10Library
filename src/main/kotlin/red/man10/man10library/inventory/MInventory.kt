@@ -14,6 +14,9 @@ import red.man10.man10library.event.MEvent
 import red.man10.man10library.inventory.context.InventoryClickContext
 import red.man10.man10library.inventory.context.InventoryCloseContext
 import red.man10.man10library.inventory.itemStack.MInventoryItem
+import red.man10.man10library.inventory.itemStack.input.MInputItem
+import red.man10.man10library.inventory.itemStack.input.MNullableInputItem
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -108,7 +111,9 @@ abstract class MInventory(
     val items = ConcurrentHashMap<Int, MInventoryItem>()
 
     /** インベントリクローズ時に実行されるコールバックのリスト。 */
-    val onClose: MutableList<InventoryCloseContext.() -> Unit> = mutableListOf()
+    private val onClose: MutableList<InventoryCloseContext.() -> Unit> = mutableListOf()
+
+    private val closeSilentlyPlayers = mutableSetOf<UUID>()
 
     /** Bukkit の Inventory オブジェクト。 */
     private val inventory = Bukkit.createInventory(this, row * 9, title)
@@ -139,6 +144,10 @@ abstract class MInventory(
             // InventoryCloseEvent のハンドリング
             mEvent.register<InventoryCloseEvent> { e ->
                 val holder = e.inventory.holder as? MInventory ?: return@register
+                if (holder.closeSilentlyPlayers.remove(e.player.uniqueId)) {
+                    // クローズを無効化している場合は処理しない
+                    return@register
+                }
                 val context = InventoryCloseContext(e)
                 holder.handleClose(context)
             }
@@ -206,6 +215,19 @@ abstract class MInventory(
         player.openInventory(inventory)
     }
 
+     /**
+      * インベントリをプレイヤーに閉じさせますが、[onClose] コールバックを実行しません。
+      *
+      * プレイヤーがこのインベントリを閉じたときに、[onClose] リストのコールバックが実行されるのを
+      * 防ぎたい場合に使用します。
+      *
+      * @param player インベントリを閉じるプレイヤー
+      */
+     fun closeSilently(player: Player) {
+         closeSilentlyPlayers.add(player.uniqueId)
+         player.closeInventory()
+     }
+
     /**
      * インベントリクローズ時に実行するコールバックを追加します。
      *
@@ -234,7 +256,8 @@ abstract class MInventory(
      *
      * @see set
      */
-    fun set(slots: IntArray, mInventoryItem: MInventoryItem) {
+    fun set(slots: IntArray, mInventoryItem: MInventoryItem, init: MInventoryItem.() -> Unit = {}) {
+        mInventoryItem.apply(init)
         val itemStack = mInventoryItem.build()
         slots.forEach { slot ->
             items[slot] = mInventoryItem
@@ -256,8 +279,8 @@ abstract class MInventory(
      * @see set
      */
     fun set(slots: IntArray, itemStack: ItemStack, init: MInventoryItem.() -> Unit = {}) {
-        val mInventoryItem = MInventoryItem(itemStack, init)
-        set(slots, mInventoryItem)
+        val mInventoryItem = MInventoryItem(itemStack)
+        set(slots, mInventoryItem, init)
     }
 
     /**
@@ -270,8 +293,8 @@ abstract class MInventory(
      * @see set
      */
     fun set(slots: IntArray, material: Material, init: MInventoryItem.() -> Unit = {}) {
-        val mInventoryItem = MInventoryItem(material, init)
-        set(slots, mInventoryItem)
+        val mInventoryItem = MInventoryItem(material)
+        set(slots, mInventoryItem, init)
     }
 
     /**
@@ -282,8 +305,8 @@ abstract class MInventory(
      *
      * @see set
      */
-    fun set(slots: IntRange, mInventoryItem: MInventoryItem) {
-        set(slots.toList().toIntArray(), mInventoryItem)
+    fun set(slots: IntRange, mInventoryItem: MInventoryItem, init: MInventoryItem.() -> Unit = {}) {
+        set(slots.toList().toIntArray(), mInventoryItem, init)
     }
 
     /**
@@ -320,8 +343,8 @@ abstract class MInventory(
      *
      * @see set
      */
-    fun set(slot: Int, mInventoryItem: MInventoryItem) {
-        set(intArrayOf(slot), mInventoryItem)
+    fun set(slot: Int, mInventoryItem: MInventoryItem, init: MInventoryItem.() -> Unit = {}) {
+        set(intArrayOf(slot), mInventoryItem, init)
     }
 
     /**
@@ -346,9 +369,276 @@ abstract class MInventory(
      *
      * @see set
      */
-    fun set(slot: Int, material: Material, init: MInventoryItem.() -> Unit = {}) {
-        set(intArrayOf(slot), material, init)
-    }
+     fun set(slot: Int, material: Material, init: MInventoryItem.() -> Unit = {}) {
+         set(intArrayOf(slot), material, init)
+     }
+
+     /**
+      * 複数のスロットに [MNullableInputItem] を設定します。
+      *
+      * これはプレイヤーの入力を受け取るために使用されるアイテムです。
+      * 値が `null` である場合もハンドリングできます。
+      *
+      * @param slots 設定対象のスロット番号の配列
+      * @param mInventoryItem 設定するアイテム
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see MNullableInputItem
+      */
+     fun <T: Any> setNullableInput(slots: IntArray, mInventoryItem: MInventoryItem, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         val inputItem = MNullableInputItem(this, mInventoryItem, type)
+         init(inputItem)
+         set(slots, inputItem)
+     }
+
+     /**
+      * スロット範囲に [MNullableInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット範囲（[IntRange]）
+      * @param mInventoryItem 設定するアイテム
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slots: IntRange, mInventoryItem: MInventoryItem, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         setNullableInput(slots.toList().toIntArray(), mInventoryItem, type, init)
+     }
+
+     /**
+      * 単一のスロットに [MNullableInputItem] を設定します。
+      *
+      * @param slot 設定対象のスロット番号
+      * @param mInventoryItem 設定するアイテム
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slot: Int, mInventoryItem: MInventoryItem, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         setNullableInput(intArrayOf(slot), mInventoryItem, type, init)
+     }
+
+     /**
+      * 複数のスロットに ItemStack から作成された [MNullableInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット番号の配列
+      * @param itemStack 設定する ItemStack
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slots: IntArray, itemStack: ItemStack, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         val mInventoryItem = MInventoryItem(itemStack)
+         setNullableInput(slots, mInventoryItem, type, init)
+     }
+
+     /**
+      * スロット範囲に ItemStack から作成された [MNullableInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット範囲（[IntRange]）
+      * @param itemStack 設定する ItemStack
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slots: IntRange, itemStack: ItemStack, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         setNullableInput(slots.toList().toIntArray(), itemStack, type, init)
+     }
+
+     /**
+      * 単一のスロットに ItemStack から作成された [MNullableInputItem] を設定します。
+      *
+      * @param slot 設定対象のスロット番号
+      * @param itemStack 設定する ItemStack
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slot: Int, itemStack: ItemStack, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         setNullableInput(intArrayOf(slot), itemStack, type, init)
+     }
+
+     /**
+      * 複数のスロットに Material から作成された [MNullableInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット番号の配列
+      * @param material 設定する Material
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slots: IntArray, material: Material, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         val mInventoryItem = MInventoryItem(material)
+         setNullableInput(slots, mInventoryItem, type, init)
+     }
+
+     /**
+      * スロット範囲に Material から作成された [MNullableInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット範囲（[IntRange]）
+      * @param material 設定する Material
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slots: IntRange, material: Material, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         setNullableInput(slots.toList().toIntArray(), material, type, init)
+     }
+
+     /**
+      * 単一のスロットに Material から作成された [MNullableInputItem] を設定します。
+      *
+      * @param slot 設定対象のスロット番号
+      * @param material 設定する Material
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MNullableInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setNullableInput
+      */
+     fun <T: Any> setNullableInput(slot: Int, material: Material, type: Class<T>, init: MNullableInputItem<T>.() -> Unit = {}) {
+         setNullableInput(intArrayOf(slot), material, type, init)
+     }
+
+     /**
+      * 複数のスロットに [MInputItem] を設定します。
+      *
+      * これはプレイヤーの入力を受け取るために使用されるアイテムです。
+      * [setNullableInput] と異なり、入力値は `null` であってはいけません。
+      *
+      * @param slots 設定対象のスロット番号の配列
+      * @param mInventoryItem 設定するアイテム
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see MInputItem
+      * @see setNullableInput
+      */
+     fun <T: Any> setInput(slots: IntArray, mInventoryItem: MInventoryItem, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         val inputItem = MInputItem(this, mInventoryItem, type)
+         init(inputItem)
+         set(slots, inputItem)
+     }
+
+     /**
+      * スロット範囲に [MInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット範囲（[IntRange]）
+      * @param mInventoryItem 設定するアイテム
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slots: IntRange, mInventoryItem: MInventoryItem, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         setInput(slots.toList().toIntArray(), mInventoryItem, type, init)
+     }
+
+     /**
+      * 単一のスロットに [MInputItem] を設定します。
+      *
+      * @param slot 設定対象のスロット番号
+      * @param mInventoryItem 設定するアイテム
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slot: Int, mInventoryItem: MInventoryItem, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         setInput(intArrayOf(slot), mInventoryItem, type, init)
+     }
+
+     /**
+      * 複数のスロットに ItemStack から作成された [MInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット番号の配列
+      * @param itemStack 設定する ItemStack
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slots: IntArray, itemStack: ItemStack, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         val mInventoryItem = MInventoryItem(itemStack)
+         setInput(slots, mInventoryItem, type, init)
+     }
+
+     /**
+      * スロット範囲に ItemStack から作成された [MInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット範囲（[IntRange]）
+      * @param itemStack 設定する ItemStack
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slots: IntRange, itemStack: ItemStack, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         setInput(slots.toList().toIntArray(), itemStack, type, init)
+     }
+
+     /**
+      * 単一のスロットに ItemStack から作成された [MInputItem] を設定します。
+      *
+      * @param slot 設定対象のスロット番号
+      * @param itemStack 設定する ItemStack
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slot: Int, itemStack: ItemStack, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         setInput(intArrayOf(slot), itemStack, type, init)
+     }
+
+     /**
+      * 複数のスロットに Material から作成された [MInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット番号の配列
+      * @param material 設定する Material
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slots: IntArray, material: Material, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         val mInventoryItem = MInventoryItem(material)
+         setInput(slots, mInventoryItem, type, init)
+     }
+
+     /**
+      * スロット範囲に Material から作成された [MInputItem] を設定します。
+      *
+      * @param slots 設定対象のスロット範囲（[IntRange]）
+      * @param material 設定する Material
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slots: IntRange, material: Material, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         setInput(slots.toList().toIntArray(), material, type, init)
+     }
+
+     /**
+      * 単一のスロットに Material から作成された [MInputItem] を設定します。
+      *
+      * @param slot 設定対象のスロット番号
+      * @param material 設定する Material
+      * @param type 入力値の型（例：String::class.java）
+      * @param init [MInputItem] の初期化ラムダ（デフォルト：空）
+      *
+      * @see setInput
+      */
+     fun <T: Any> setInput(slot: Int, material: Material, type: Class<T>, init: MInputItem<T>.() -> Unit = {}) {
+         setInput(intArrayOf(slot), material, type, init)
+     }
 
     /**
      * インベントリクローズイベントのハンドリング。

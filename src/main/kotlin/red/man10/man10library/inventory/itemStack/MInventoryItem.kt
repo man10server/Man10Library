@@ -50,7 +50,8 @@ import red.man10.man10library.inventory.context.InventoryClickContext
  * @see red.man10.man10library.inventory.MInventory.set
  */
 @MItemStackDslMarker
-class MInventoryItem(itemStack: ItemStack): MItemStack(itemStack) {
+@Suppress("unused")
+open class MInventoryItem(itemStack: ItemStack): MItemStack(itemStack) {
 
     /**
      * ItemStack と初期化ラムダを受け取るコンストラクタ。
@@ -71,6 +72,10 @@ class MInventoryItem(itemStack: ItemStack): MItemStack(itemStack) {
      * @param init MInventoryItem の設定ラムダ（デフォルト：空）
      */
     constructor(material: Material, init: MInventoryItem.() -> Unit = {}): this(ItemStack(material)) {
+        init()
+    }
+
+    constructor(mInventoryItem: MInventoryItem, init: MInventoryItem.() -> Unit = {}): this(mInventoryItem.itemStack) {
         init()
     }
 

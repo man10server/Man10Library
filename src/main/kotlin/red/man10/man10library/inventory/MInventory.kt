@@ -374,6 +374,18 @@ abstract class MInventory(
      }
 
     /**
+     * インベントリ内の全アイテムをクリアします。
+     *
+     * `renderOnSet` が `true` の場合は Bukkit インベントリもクリアされます。
+     */
+    fun clear() {
+        items.clear()
+        if (renderOnSet) {
+            inventory.clear()
+        }
+    }
+
+    /**
      * インベントリ全体を [MInventoryItem] で埋め尽くします。
      *
      * @param mInventoryItem 設定するアイテム

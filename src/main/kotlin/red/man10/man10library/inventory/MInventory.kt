@@ -373,6 +373,40 @@ abstract class MInventory(
          set(intArrayOf(slot), material, init)
      }
 
+    /**
+     * インベントリ全体を [MInventoryItem] で埋め尽くします。
+     *
+     * @param mInventoryItem 設定するアイテム
+     * @param init [MInventoryItem] の初期化ラムダ（デフォルト：空）
+     */
+    fun fill(mInventoryItem: MInventoryItem, init: MInventoryItem.() -> Unit = {}) {
+        val allSlots = (0 until inventory.size).toList().toIntArray()
+        set(allSlots, mInventoryItem, init)
+    }
+
+    /**
+     * インベントリ全体を ItemStack で埋め尽くし、[MInventoryItem] デコレータで設定します。
+     *
+     * @param itemStack 設定する ItemStack
+     * @param init [MInventoryItem] の初期化ラムダ（デフォルト：空）
+     */
+    fun fill(itemStack: ItemStack, init: MInventoryItem.() -> Unit = {}) {
+        val mInventoryItem = MInventoryItem(itemStack)
+        fill(mInventoryItem, init)
+    }
+
+
+    /**
+     * インベントリ全体を Material から生成された ItemStack で埋め尽くし、[MInventoryItem] デコレータで設定します。
+     *
+     * @param material 設定する Material
+     * @param init [MInventoryItem] の初期化ラムダ（デフォルト：空）
+     */
+    fun fill(material: Material, init: MInventoryItem.() -> Unit = {}) {
+        val mInventoryItem = MInventoryItem(material)
+        fill(mInventoryItem, init)
+    }
+
      /**
       * 複数のスロットに [MNullableInputItem] を設定します。
       *

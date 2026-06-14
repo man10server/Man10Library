@@ -6,6 +6,10 @@ import org.bukkit.event.inventory.ClickType
 import red.man10.man10library.inventory.MInventory
 import red.man10.man10library.inventory.itemStack.MInventoryItem
 import red.man10.man10library.utils.UnaryPlusBuilder
+import red.man10.man10library.utils.byLegacy
+import red.man10.man10library.utils.byMiniMessage
+import red.man10.man10library.utils.toLegacy
+import red.man10.man10library.utils.toMiniMessage
 
 /**
  * プレイヤー入力を受け取るためのインベントリアイテム。
@@ -59,9 +63,53 @@ open class MNullableInputItem<T: Any>(
     var message: Component = Component.empty()
 
     /**
+     * [message] をレガシー形式の文字列として取得・設定します。
+     *
+     * @see message
+     */
+    var messageText: String
+        get() = message.toLegacy()
+        set(value) {
+            message = value.byLegacy()
+        }
+
+    /**
+     * [message] をMiniMessage形式の文字列として取得・設定します。
+     *
+     * @see message
+     */
+    var messageMiniMessage: String
+        get() = message.toMiniMessage()
+        set(value) {
+            message = value.byMiniMessage()
+        }
+
+    /**
      * 入力値の変換に失敗したときに送信するメッセージを生成します。
      */
     var errorMessage: (erroredInput: String) -> Component = { Component.empty() }
+
+    /**
+     * [errorMessage] をレガシー形式の文字列として取得・設定します。
+     *
+     * @see errorMessage
+     */
+    var errorMessageText: (erroredInput: String) -> String
+        get() = { errorMessage(it).toLegacy() }
+        set(value) {
+            errorMessage = { value(it).byLegacy() }
+        }
+
+    /**
+     * [errorMessage] をMiniMessage形式の文字列として取得・設定します。
+     *
+     * @see errorMessage
+     */
+    var errorMessageMiniMessage: (erroredInput: String) -> String
+        get() = { errorMessage(it).toMiniMessage() }
+        set(value) {
+            errorMessage = { value(it).byMiniMessage() }
+        }
 
     /**
      * 入力開始を許可するクリック種別の集合。

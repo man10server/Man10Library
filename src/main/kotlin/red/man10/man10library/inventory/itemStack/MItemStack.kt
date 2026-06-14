@@ -14,6 +14,10 @@ import org.bukkit.persistence.PersistentDataType
 import red.man10.man10library.MJavaPlugin
 import red.man10.man10library.dslMarker.MItemStackDslMarker
 import red.man10.man10library.utils.UnaryPlusBuilder
+import red.man10.man10library.utils.byLegacy
+import red.man10.man10library.utils.byMiniMessage
+import red.man10.man10library.utils.toLegacy
+import red.man10.man10library.utils.toMiniMessage
 
 /**
  * ItemStack を DSL 形式で詳細に設定できるビルダークラス。
@@ -108,9 +112,9 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
      * @see customNameMiniMessage
      */
     var customNameText: String?
-        get() = customName?.let { toLegacy(it) }
+        get() = customName?.toLegacy()
         set(value) {
-            customName = value?.let { fromLegacy(it) }
+            customName = value?.byLegacy()
         }
 
     /**
@@ -124,9 +128,9 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
      * @see customNameText
      */
     var customNameMiniMessage: String?
-        get() = customName?.let { toMiniMessage(it) }
+        get() = customName?.toMiniMessage()
         set(value) {
-            customName = value?.let { fromMiniMessage(it) }
+            customName = value?.byMiniMessage()
         }
 
     /**
@@ -152,9 +156,9 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
      * @see loreMiniMessage
      */
     var loreText: List<String>?
-        get() = lore?.map { toLegacy(it) }
+        get() = lore?.map { it.toLegacy() }
         set(value) {
-            lore = value?.map { fromLegacy(it) }
+            lore = value?.map { it.byLegacy() }
         }
 
     /**
@@ -167,9 +171,9 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
      * @see loreText
      */
     var loreMiniMessage: List<String>?
-        get() = lore?.map { toMiniMessage(it) }
+        get() = lore?.map { it.toMiniMessage() }
         set(value) {
-            lore = value?.map { fromMiniMessage(it) }
+            lore = value?.map { it.byMiniMessage() }
         }
 
     /**

@@ -4,6 +4,8 @@ import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import red.man10.man10library.utils.byLegacy
+import red.man10.man10library.utils.toLegacy
 
 /**
  * ItemStack の表示名と Lore を簡潔に操作するビルダークラス。
@@ -61,7 +63,7 @@ class MSimpleItemStack(val itemStack: ItemStack): IMItemStack {
      */
     fun getDisplayName(): String {
         val component = getItemMeta().customName() ?: return ""
-        return toLegacy(component)
+        return component.toLegacy()
     }
 
     /**
@@ -74,7 +76,7 @@ class MSimpleItemStack(val itemStack: ItemStack): IMItemStack {
      */
     fun setDisplayName(displayName: String): MSimpleItemStack {
         itemStack.editMeta { meta ->
-            meta.customName(fromLegacy(displayName))
+            meta.customName(displayName.byLegacy())
         }
         return this
     }
@@ -86,7 +88,7 @@ class MSimpleItemStack(val itemStack: ItemStack): IMItemStack {
      */
     fun getLore(): List<String> {
         val lore = getItemMeta().lore() ?: return emptyList()
-        return lore.map { toLegacy(it) }
+        return lore.map { it.toLegacy() }
     }
 
     /**
@@ -100,7 +102,7 @@ class MSimpleItemStack(val itemStack: ItemStack): IMItemStack {
      */
     fun setLore(lore: List<String>): MSimpleItemStack {
         itemStack.editMeta { meta ->
-            meta.lore(lore.map { fromLegacy(it) })
+            meta.lore(lore.map { it.byLegacy() })
         }
         return this
     }
@@ -129,7 +131,7 @@ class MSimpleItemStack(val itemStack: ItemStack): IMItemStack {
     fun addLore(lore: List<String>): MSimpleItemStack {
         itemStack.editMeta { meta ->
             val currentLore = meta.lore() ?: emptyList()
-            meta.lore(currentLore + lore.map { fromLegacy(it) })
+            meta.lore(currentLore + lore.map { it.byLegacy() })
         }
         return this
     }

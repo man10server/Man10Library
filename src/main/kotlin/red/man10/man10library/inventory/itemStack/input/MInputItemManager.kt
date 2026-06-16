@@ -36,8 +36,8 @@ object MInputItemManager {
 
             e.isCancelled = true
 
-            val input = e.message.trim()
-            if (input.equals("/cancel", ignoreCase = true)) {
+            val input = e.message.replaceFirst("/", "")
+            if (input.equals("cancel", ignoreCase = true)) {
                 session.onCancelled(e.player)
             } else {
                 val success = session.onEnter(input, e.player)

@@ -25,6 +25,10 @@ class SampleInventory: MInventory("Sample Inventory", 6) {
 
         setInput(1, Material.PAPER, Int::class.java) {
             customNameMiniMessage = "<green>Input Paper"
+
+            messageMiniMessage = "Please enter a number"
+            errorMessageMiniMessage = { "<red>Please enter a valid number" }
+
             onEnter {
                 player.sendMessage("You entered: $value")
             }

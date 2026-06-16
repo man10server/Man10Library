@@ -6,6 +6,6 @@ import red.man10.man10library.MJavaPlugin
 class SamplePlugin: MJavaPlugin() {
 
     override fun registerCommands(commands: Commands) {
-        SampleCommands(commands)
+        SampleCommands().register(commands)
     }
 }

@@ -7,7 +7,7 @@ import org.bukkit.entity.Player
 import red.man10.man10library.command.MCommand
 import red.man10.man10library.command.MCommandBody
 
-class SampleCommands(registrar: Commands): MCommand(registrar) {
+class SampleCommands(): MCommand() {
 
     @MCommandBody
     val sampleCommands = command {

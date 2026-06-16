@@ -41,12 +41,12 @@ import io.papermc.paper.command.brigadier.Commands
  * @param registrar Brigadier の Commands レジストラ（MJavaPlugin.registerCommands から取得したものを渡す）
  */
 @Suppress("unused")
-abstract class MCommand(registrar: Commands) {
+abstract class MCommand {
 
     /** この MCommand に含まれるコマンド定義オブジェクトのリスト。 */
     val commands = mutableListOf<MCommandObject>()
 
-    init {
+    fun register(registrar: Commands) {
         // リフレクションで @MCommandBody が付いたフィールドを探し、MCommandObject を収集する
         commands.clear()
         javaClass.declaredFields.forEach { field ->

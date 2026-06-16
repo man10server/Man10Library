@@ -37,6 +37,6 @@ class MCommandObject(init: MCommandObject.() -> Unit) {
      * @return Brigadier 用の [LiteralArgumentBuilder] のリスト
      */
     fun build(): List<LiteralArgumentBuilder<CommandSourceStack>> {
-        return arguments.map { it.build() }
+        return arguments.map { it.buildForBrigadier() as LiteralArgumentBuilder<CommandSourceStack> }
     }
 }

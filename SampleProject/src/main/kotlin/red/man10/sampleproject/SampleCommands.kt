@@ -1,13 +1,11 @@
 package red.man10.sampleproject
 
-import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes
-import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import org.bukkit.entity.Player
 import red.man10.man10library.command.MCommand
 import red.man10.man10library.command.MCommandBody
 
-class SampleCommands(): MCommand() {
+class SampleCommands: MCommand() {
 
     @MCommandBody
     val sampleCommands = command {
@@ -15,11 +13,9 @@ class SampleCommands(): MCommand() {
             literal("hello") {
                 argument("target", ArgumentTypes.player()) {
                     executes {
-                        val target = context.getArgument("target", PlayerSelectorArgumentResolver::class.java)
-                            .resolve(context.source)
-                            .first()
+                        val target = getPlayer("target")
 
-                        target.sendMessage("Hello from ${context.source.sender.name}!")
+                        target.sendPlainMessage("Hello from ${sender.name}!")
                         return@executes 0
                     }
                 }
@@ -31,7 +27,7 @@ class SampleCommands(): MCommand() {
                     if (player != null) {
                         SampleInventory().open(player)
                     } else {
-                        context.source.sender.sendMessage("This command can only be used by a player.")
+                        sender.sendPlainMessage("This command can only be used by a player.")
                     }
                     0
                 }

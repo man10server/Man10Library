@@ -1,8 +1,8 @@
 package red.man10.man10library
 
-import io.papermc.paper.command.brigadier.Commands
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.man10library.command.MCommand
 
 /**
  * ベースとなる JavaPlugin 拡張クラス。
@@ -17,34 +17,26 @@ abstract class MJavaPlugin : JavaPlugin() {
         lateinit var plugin: MJavaPlugin
     }
 
-    /**
-     * Brigadier の Commands レジストラを受け取り、コマンドを登録するためのフック。
-     *
-     * 注意: レジストラ取得は Paper のライフサイクルイベントから行われ、
-     * MCommand 系クラスがこのレジストラを利用してコマンドを登録します。
-     * 具体的には onEnable で LifecycleEvents.COMMANDS を購読し、
-     * イベントオブジェクトの registrar() をこのメソッドに渡します。
-     *
-     * デフォルト実装は空です。プラグイン側でオーバーライドしてコマンド登録を行ってください。
-     *
-     * @param commands Brigadier の Commands レジストラ
-     */
-    open fun registerCommands(commands: Commands) {
-
-    }
-
     override fun onLoad() {
         plugin = this
     }
 
+    abstract fun onPluginEnabled()
+
+    @Deprecated("Use onPluginEnabled() instead", ReplaceWith("onPluginEnabled()"), DeprecationLevel.ERROR)
     override fun onEnable() {
-        // Paper のライフサイクルイベント(COMMANDS)を購読し、レジストラを registerCommands に渡す
-        lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS) { commands ->
-            registerCommands(commands.registrar())
-        }
+        onPluginEnabled()
     }
 
     override fun onDisable() {
         // Plugin shutdown logic
+    }
+
+    fun registerCommands(vararg commands: MCommand) {
+        lifecycleManager.registerEventHandler(LifecycleEvents.COMMANDS) { reloadableRegistrarEvent ->
+            commands.forEach { command ->
+                command.register(reloadableRegistrarEvent.registrar())
+            }
+        }
     }
 }

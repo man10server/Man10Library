@@ -6,12 +6,12 @@ import io.papermc.paper.command.brigadier.Commands
  * コマンド定義をまとめる抽象ベースクラス。
  *
  * サブクラスはフィールドに `@MCommandBody` アノテーションを付与して `MCommandObject` を定義します。
- * コンストラクタで受け取った {@link Commands} レジストラを使用して、内部で定義されたコマンドを自動的に登録します。
+ * `MJavaPlugin.registerCommands` を使用して、内部で定義されたコマンドを自動的に登録します。
  *
  * ### 最小限のサンプル
  *
  * ```kotlin
- * class HelloCommand(registrar: Commands) : MCommand(registrar) {
+ * class HelloCommand : MCommand() {
  *     @MCommandBody
  *     val hello = command {
  *         literal("hello") {
@@ -24,29 +24,23 @@ import io.papermc.paper.command.brigadier.Commands
  * }
  * ```
  *
- * プラグイン側で `MJavaPlugin.registerCommands` に registrar を渡します：
+ * プラグイン側で `MJavaPlugin.registerCommands`で登録します
  *
  * ```kotlin
  * class MyPlugin : MJavaPlugin() {
- *     override fun registerCommands(commands: Commands) {
- *         HelloCommand(commands)
- *     }
+ *    override fun onPluginEnabled() {
+ *       registerCommands(HelloCommand())
+ *    }
  * }
  * ```
- *
- * registrar の入手元について:
- * MCommand に渡す {@link Commands} の registrar は通常プラグインの `MJavaPlugin.registerCommands` で取得されます。
- * `MJavaPlugin.onEnable` にて Paper の LifecycleEvents.COMMANDS イベントから取得される `commands.registrar()` を渡してください。
- *
- * @param registrar Brigadier の Commands レジストラ（MJavaPlugin.registerCommands から取得したものを渡す）
  */
 @Suppress("unused")
 abstract class MCommand {
 
     /** この MCommand に含まれるコマンド定義オブジェクトのリスト。 */
-    val commands = mutableListOf<MCommandObject>()
+    private val commands = mutableListOf<MCommandObject>()
 
-    fun register(registrar: Commands) {
+    internal fun register(registrar: Commands) {
         // リフレクションで @MCommandBody が付いたフィールドを探し、MCommandObject を収集する
         commands.clear()
         javaClass.declaredFields.forEach { field ->

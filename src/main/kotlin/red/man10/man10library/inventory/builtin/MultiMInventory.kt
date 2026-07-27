@@ -8,69 +8,43 @@ import java.util.concurrent.ConcurrentHashMap
 @Suppress("unused")
 abstract class MultiMInventory(
     title: Component,
-    val row: Int
+    row: Int
 ): MInventory(title, row) {
+
+    constructor(title: String, row: Int): this(Component.text(title), row)
 
     var currentSection: String? = null
         private set
 
-    protected var clearInventoryWhenSectionChanged: Boolean = true
+    protected open val clearInventoryWhenSectionChanged: Boolean = true
 
-    protected val sections = ConcurrentHashMap<String, MInventory>()
+    protected val sections = ConcurrentHashMap<String, MInventory.() -> Unit>()
 
-    protected abstract val sectionDefinitions:
-            MultiMInventory.() -> Unit
-
-    private var sectionDefinitionsInitialized: Boolean = false
-
-    protected fun section(name: String, inventory: MInventory) {
-        sections[name] = inventory
-    }
-
-    protected fun section(
-        name: String,
-        init: MultiMInventorySection.() -> Unit
-    ) {
-        val section = MultiMInventorySection(init)
-        sections[name] = section
+    protected fun section(name: String, init: MInventory.() -> Unit) {
+        sections[name] = init
+        if (currentSection == null) {
+            currentSection = name
+        }
     }
 
     fun switchSection(sectionName: String) {
         currentSection = sectionName
-        renderContents()
+        render()
     }
 
+    abstract fun createSections()
+
     override fun renderContents() {
-        if (!sectionDefinitionsInitialized) {
-            sectionDefinitions()
-            sectionDefinitionsInitialized = true
-        }
+        sections.clear()
+        createSections()
+
         val currentSection = currentSection ?: return
         val section = sections[currentSection] ?: return
-
-        section.renderContents()
 
         if (clearInventoryWhenSectionChanged) {
             clear()
         }
 
-        section.items.forEach { (index, item) ->
-            set(index, item)
-        }
-    }
-
-    inner class MultiMInventorySection(
-        val init: MultiMInventorySection.() -> Unit
-    ): MInventory(Component.empty(), row) {
-
-        override val renderOnSet: Boolean = false
-
-        init {
-            init()
-        }
-
-        override fun renderContents() {
-            // セクションの内容はMultiMInventoryのrenderContentsで描画されるため、ここでは何もしない
-        }
+        section()
     }
 }

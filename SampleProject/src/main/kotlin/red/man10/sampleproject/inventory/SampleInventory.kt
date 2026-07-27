@@ -1,4 +1,4 @@
-package red.man10.sampleproject
+package red.man10.sampleproject.inventory
 
 import net.kyori.adventure.key.Key
 import org.bukkit.Material

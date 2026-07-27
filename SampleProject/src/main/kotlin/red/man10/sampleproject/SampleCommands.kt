@@ -4,6 +4,8 @@ import io.papermc.paper.command.brigadier.argument.ArgumentTypes
 import org.bukkit.entity.Player
 import red.man10.man10library.command.MCommand
 import red.man10.man10library.command.MCommandBody
+import red.man10.sampleproject.inventory.SampleInventory
+import red.man10.sampleproject.inventory.SampleMultiInventory
 
 class SampleCommands: MCommand() {
 
@@ -22,14 +24,22 @@ class SampleCommands: MCommand() {
             }
 
             literal("inventory") {
-                executes {
-                    val player = (context.source.executor ?: context.source.sender) as? Player
-                    if (player != null) {
+                literal("normal") {
+                    executes {
+                        val player = sender as? Player ?: return@executes 0
+
                         SampleInventory().open(player)
-                    } else {
-                        sender.sendPlainMessage("This command can only be used by a player.")
+                        return@executes 0
                     }
-                    0
+                }
+
+                literal("multi") {
+                    executes {
+                        val player = sender as? Player ?: return@executes 0
+
+                        SampleMultiInventory().open(player)
+                        return@executes 0
+                    }
                 }
             }
         }

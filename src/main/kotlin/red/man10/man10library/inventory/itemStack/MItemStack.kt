@@ -231,6 +231,17 @@ open class MItemStack(val itemStack: ItemStack): IMItemStack {
             }
         }
 
+    /**
+     * アイテムのエンチャントエフェクト表示を上書きするかどうか。
+     *
+     * `true` にすると、エンチャントがなくてもエフェクトが表示されるようになります。
+     */
+    var enchantmentGlintOverride: Boolean
+        get() = itemStack.getData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE) ?: false
+        set(value) {
+            setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, value)
+        }
+
 
     /**
      * 指定した Data Component に値を直接設定します。

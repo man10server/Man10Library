@@ -210,9 +210,9 @@ open class MNullableInputItem<T: Any>(
                     return@InputSession true
                 }
 
-                val parsedValue = MInputItemManager.parseInput(input, type)
+                val parsedValue = MInputItemManager.parseInput(msg, type)
                 if (parsedValue == null) {
-                    player.sendMessage(errorMessage(input))
+                    player.sendMessage(errorMessage(msg))
                     if (openInventoryAfterInput) {
                         inventory.open(player)
                     }
@@ -230,7 +230,8 @@ open class MNullableInputItem<T: Any>(
                 if (openInventoryAfterCancel) {
                     inventory.open(player)
                 }
-            })
+            }
+        )
     }
 
     /**

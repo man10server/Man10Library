@@ -64,14 +64,23 @@ class MInputItem<T: Any>(
                 val parsedInput = MInputItemManager.parseInput(msg, type)
                 if (parsedInput == null) {
                     player.sendMessage(errorMessage(msg))
+                    if (openInventoryAfterInput) {
+                        inventory.open(player)
+                    }
                     return@InputSession false
                 }
 
                 onEnter?.invoke(MInputContext(parsedInput, player))
+                if (openInventoryAfterInput) {
+                    inventory.open(player)
+                }
                 return@InputSession true
             },
             onCancelled = { player ->
                 this.onCancelled?.invoke(player)
+                if (openInventoryAfterCancel) {
+                    inventory.open(player)
+                }
             }
         )
     }
